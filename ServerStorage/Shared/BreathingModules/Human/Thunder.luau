@@ -11,13 +11,16 @@ local AnimationModule = require(RS.Shared.Modules.AnimationModule)
 local VelocityModule = require(RS.Shared.Modules.VelocityModule)
 
 function checkIfHumanoid(target)
-	if target:FindFirstAncestorOfClass("Model") then
-		local model = target:FindFirstAncestorOfClass("Model")
-		if model:FindFirstChildOfClass("Humanoid") then
-			return true, model
-		end
+	if not target:FindFirstAncestorOfClass("Model") then
+		return false
 	end
-	return false
+	
+	local model = target:FindFirstAncestorOfClass("Model")
+	if not model:FindFirstChildOfClass("Humanoid") then
+		return false
+	end
+	
+	return true, model
 end
 
 local module = {

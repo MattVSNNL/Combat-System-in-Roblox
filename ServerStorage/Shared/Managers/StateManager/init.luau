@@ -7,7 +7,9 @@ local playerData = SS:WaitForChild("PlayerData")
 local states = require(script.States)
 
 function StateManager:SetState(entity, stateName)
-	if not entity or not stateName then return end
+	if not entity or not stateName then
+		return
+	end
 
 	local data
 	if Players:GetPlayerFromCharacter(entity) then
@@ -15,15 +17,19 @@ function StateManager:SetState(entity, stateName)
 	else
 		data = entity
 	end
-
-	if data then
-		data:SetAttribute("CurrentState", stateName)
-		states[stateName](data)
+	
+	if not data then
+		return
 	end
+
+	data:SetAttribute("CurrentState", stateName)
+	states[stateName](data)
 end
 
 function StateManager:GetState(entity)
-	if not entity then return end
+	if not entity then
+		return
+	end
 
 	local data
 	if Players:GetPlayerFromCharacter(entity) then

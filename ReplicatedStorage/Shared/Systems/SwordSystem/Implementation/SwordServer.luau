@@ -9,18 +9,28 @@ local SwordServer = {}
 
 local function SetupSword(player, char)
 	
-	task.wait()
-	if not player then return end
+	task.wait() -- Wait for the game to load
+	if not player then
+		return
+	end
 	
 	local data = DataManager:GetData(player)
-	if not data then return end
+	if not data then
+		return
+	end
 	
-	if not char then return end
+	if not char then
+		return
+	end
 	
 	local playerSword = SS.Assets.Swords[DataManager:GetEquippedSword(player)]
-	if not playerSword then return end
+	if not playerSword then
+		return
+	end
 
-	if char:FindFirstChild("Sword") then return end
+	if char:FindFirstChild("Sword") then
+		return
+	end
 
 	local sword = playerSword:Clone()
 	sword.Name = "Sword"
@@ -54,24 +64,28 @@ local function SetupSword(player, char)
 	tWeld.Enabled = true
 end
 
+local function setup(player : Player)
+	if not player then
+		return
+	end
+
+	player.CharacterAdded:Connect(SetupSword(player, player.Character))
+	if not player.Character then
+		return
+	end
+
+	SetupSword(player, player.Character)
+end
+
 function SwordServer:Init()
 	
 end
 
 function SwordServer:Start()
-	Players.PlayerAdded:Connect(function(player)
-		player.CharacterAdded:Connect(function(char)
-			SetupSword(player, char)
-		end)
-	end)
+	Players.PlayerAdded:Connect(setup)
+	
 	for _, player in ipairs(Players:GetPlayers()) do
-		if player.Character then
-			SetupSword(player, player.Character)
-		end
-		
-		player.CharacterAdded:Connect(function(char)
-			SetupSword(player, char)
-		end)
+		setup(player)
 	end
 end
 

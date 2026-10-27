@@ -24,7 +24,9 @@ end
 
 function SkillClient:Start()
 	UIS.InputBegan:Connect(function(key, gameProcessed)
-		if gameProcessed then return end
+		if gameProcessed then
+			return
+		end
 		
 		if key.UserInputType == Enum.UserInputType.MouseButton1 then
 			SkillServiceClient:RequestSkill(self.char, key.UserInputType)

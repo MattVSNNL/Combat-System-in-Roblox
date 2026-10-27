@@ -5,40 +5,44 @@ local AnimationModule = require(ReplicatedStorage.Shared.Modules.AnimationModule
 
 local AnimationServer = {}
 
-local function preloadAnimations(char)
+local function preloadAnimations(char : Model)
+	if not char then
+		return
+	end
+	
 	AnimationModule.PreloadAnimations(char:WaitForChild("Humanoid"))
 	print("Loaded Animations!")
 end
 
 local function clearAnimations(char: Model)
 	local humanoid = char:FindFirstChild("Humanoid")
-	if humanoid then
-		AnimationModule.ClearPlayerCache(humanoid)
+	if not humanoid then
+		return
 	end
+	
+	AnimationModule.ClearPlayerCache(humanoid)
+end
+
+local function setup(player : Player)
+	if not player then
+		return
+	end
+
+	player.CharacterAdded:Connect(preloadAnimations)
+	player.CharacterRemoving:Connect(clearAnimations)
+	
+	if not player.Character then
+		return
+	end
+	
+	preloadAnimations(player.Character)
 end
 
 function AnimationServer:Start()
-	Players.PlayerAdded:Connect(function(player)
-		player.CharacterAdded:Connect(function(char)
-			preloadAnimations(char)
-		end)
-		
-		player.CharacterRemoving:Connect(function(char)
-			clearAnimations(char)
-		end)
-	end)
+	Players.PlayerAdded:Connect(setup)
+	
 	for _, player in ipairs(Players:GetPlayers()) do
-		if player.Character then
-			preloadAnimations(player.Character)
-		end
-
-		player.CharacterAdded:Connect(function(char)
-			preloadAnimations(char)
-		end)
-		
-		player.CharacterRemoving:Connect(function(char)
-			clearAnimations(char)
-		end)
+		setup(player)
 	end
 end
 

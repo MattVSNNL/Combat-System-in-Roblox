@@ -53,11 +53,12 @@ end
 
 function DataManager:GetData(player)
 	local data = playerData:WaitForChild(player.Name, 10)
-	if data then
-		return data
-	else
+	if not data then
 		warn(player.Name.."'s data is not found.")
+		return
 	end
+	
+	return data
 end
 
 function DataManager:CheckIfBlacklisted(player, blacklist)
@@ -67,17 +68,22 @@ function DataManager:CheckIfBlacklisted(player, blacklist)
 end
 
 function DataManager:SetBlocking(entity, val)
-	if not entity then return end
-	local player = Players:GetPlayerFromCharacter(entity)
-
-	if player then
-		local data = DataManager:GetData(player)
-		if data then
-			data:SetAttribute("Blocking", val)
-		end
-	else
-		entity:SetAttribute("Blocking", val)
+	if not entity then
+		return
 	end
+	
+	local player = Players:GetPlayerFromCharacter(entity)
+	if not player then
+		entity:SetAttribute("Blocking", val)
+		return
+	end
+	
+	local data = DataManager:GetData(player)
+	if not data then
+		return
+	end
+	
+	data:SetAttribute("Blocking", val)
 end
 
 function DataManager:CheckIfOwner(player)
@@ -91,17 +97,23 @@ function DataManager:CheckIfOwner(player)
 end
 
 function DataManager:GetKeybinds(player)
-	if not player then return end
+	if not player then
+		return
+	end
 	
 	local data = DataManager:GetData(player)
-	if not data then return end
+	if not data then
+		return 
+	end
 	
 	local keybinds = {}
 	
 	for _, keybind in ipairs(data.Keybinds:GetChildren()) do
-		if keybind:IsA("StringValue") then
-			keybinds[keybind.Name] = keybind.Value
+		if not keybind:IsA("StringValue") then
+			continue
 		end
+		
+		keybinds[keybind.Name] = keybind.Value
 	end
 	
 	return keybinds
@@ -116,22 +128,7 @@ function DataManager.Setup(player : Player, profile)
 	
 	-- Load in player data
 	for name, tab in pairs(TemplateData) do
-		if type(tab) == "table" then
-			local folder = Instance.new("Folder")
-			folder.Name = name
-			folder.Parent = data
-			for dataName, _ in pairs(tab) do
-				local value = profile.Data[name][dataName]
-				local class = GetClassByType(value)
-				local nv = Instance.new(class)
-				nv.Name = dataName
-				nv.Value = value
-				nv.Parent = folder
-				nv:GetPropertyChangedSignal("Value"):Connect(function()
-					profile.Data[name][dataName] = nv.Value
-				end)
-			end
-		else
+		if type(tab) ~= "table" then
 			local value = profile.Data[name]
 			local class = GetClassByType(value)
 			local nv = Instance.new(class)
@@ -140,6 +137,23 @@ function DataManager.Setup(player : Player, profile)
 			nv.Parent = data
 			nv:GetPropertyChangedSignal("Value"):Connect(function()
 				profile.Data[name] = nv.Value
+			end)
+			
+			continue
+		end
+		
+		local folder = Instance.new("Folder")
+		folder.Name = name
+		folder.Parent = data
+		for dataName, _ in pairs(tab) do
+			local value = profile.Data[name][dataName]
+			local class = GetClassByType(value)
+			local nv = Instance.new(class)
+			nv.Name = dataName
+			nv.Value = value
+			nv.Parent = folder
+			nv:GetPropertyChangedSignal("Value"):Connect(function()
+				profile.Data[name][dataName] = nv.Value
 			end)
 		end
 	end

@@ -12,7 +12,10 @@ function CombatUtil:IsEquipped(player)
 end
 
 function CombatUtil:CanEquip(player)
-	if not player then return true end
+	if not player then
+		return true
+	end
+	
 	return DataManager:CheckIfBlacklisted(player, {
 		Attacking = true,
 		Blocking = true,
@@ -22,7 +25,10 @@ function CombatUtil:CanEquip(player)
 end
 
 function CombatUtil:CanAttack(player)
-	if not player then return true end
+	if not player then
+		return true
+	end
+	
 	return DataManager:CheckIfBlacklisted(player, {
 		Attacking = true,
 		Blocking = true,
@@ -34,10 +40,14 @@ end
 
 function CombatUtil:GetClosestRig(player, range)
 	local char = player.Character
-	if not player or not char then return end
+	if not player or not char then
+		return
+	end
 
 	local rootPart = char:FindFirstChild("HumanoidRootPart")
-	if not rootPart then return end
+	if not rootPart then
+		return
+	end
 
 	local closestRig = nil
 	local closestDistance = range
@@ -56,23 +66,37 @@ function CombatUtil:GetClosestRig(player, range)
 	local npcs = CollectionService:GetTagged(CONFIG.NPC_TAG)
 	if npcs then
 		for _, npc in ipairs(npcs) do
-			if npc:IsA("Model") and npc:FindFirstChild("HumanoidRootPart") and npc:FindFirstChild("Humanoid") then
-				if npc:GetAttribute("CanDamage") == true then
-					table.insert(targets, npc)
-				end
+			if not npc:IsA("Model") then
+				continue
 			end
+			
+			if not npc:FindFirstChild("HumanoidRootPart") then
+				continue
+			end
+			
+			if not npc:FindFirstChild("Humanoid") then
+				continue
+			end
+			
+			if npc:GetAttribute("CanDamage") ~= true then
+				continue
+			end
+			
+			table.insert(targets, npc)
 		end
 	end
 
 	-- Loop through the targets table to see who's the closest
 	for _, rig in ipairs(targets) do
 		local hrp = rig:FindFirstChild("HumanoidRootPart")
-		if hrp then
-			local distance = (hrp.Position - rootPart.Position).Magnitude
-			if distance <= range then
-				closestRig = rig
-				closestDistance = distance
-			end
+		if not hrp then
+			continue
+		end
+		
+		local distance = (hrp.Position - rootPart.Position).Magnitude
+		if distance <= range and distance < closestDistance then
+			closestRig = rig
+			closestDistance = distance
 		end
 	end
 

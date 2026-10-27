@@ -28,27 +28,41 @@ function SwordServerService:Start()
 	self.equipRemote.OnServerEvent:Connect(function(player)
 		SwordServerService:HandleEquipRequest(player)
 	end)
+	
 	self.m1.OnServerEvent:Connect(function(player)
 		SwordServerService:HandleM1Request(player)
 	end)
 end
 
 function SwordServerService:HandleEquipRequest(player)
-	if not player then return end
+	if not player then
+		return
+	end
 
 	local char = player.Character
-	if not char then return end
+	if not char then
+		return
+	end
 
 	local data = DataManager:GetData(player)
-	if not data then return end
+	if not data then
+		return
+	end
 
 	local equippedSword = DataManager:GetEquippedSword(player)
-	if not equippedSword then return end
+	if not equippedSword then
+		return
+	end
 
 	local swordData = SwordStats[equippedSword]
-	if not swordData then return end
+	if not swordData then
+		return
+	end
 	
-	if data:GetAttribute("IsEquipping") == true then return end
+	if data:GetAttribute("IsEquipping") == true then
+		return
+	end
+	
 	if CombatUtil:CanEquip(player) then
 		if not CombatUtil:IsEquipped(player) then
 			SwordServerService:Equip(player, char)
@@ -59,25 +73,43 @@ function SwordServerService:HandleEquipRequest(player)
 end
 
 function SwordServerService:HandleM1Request(player)
-	if not player then return end
-	if not CombatUtil:CanAttack(player) then return end
+	if not player then
+		return
+	end
+	
+	if not CombatUtil:CanAttack(player) then
+		return
+	end
 
 	local char = player.Character
-	if not char then return end
+	if not char then
+		return
+	end
 
 	local data = DataManager:GetData(player)
-	if not data then return end
+	if not data then
+		return
+	end
 
 	local equippedSword = DataManager:GetEquippedSword(player)
-	if not equippedSword or not CombatUtil:IsEquipped(player) then return end
+	if not equippedSword or not CombatUtil:IsEquipped(player) then
+		return
+	end
 
 	local swordData = SwordStats[equippedSword]
-	if not swordData then return end
-
-	if data:GetAttribute("Swinging") == true then return end
-	if SwordStats[equippedSword] then
-		SwordServerService:M1(player, char)
+	if not swordData then
+		return
 	end
+
+	if data:GetAttribute("Swinging") == true then
+		return
+	end
+	
+	if not SwordStats[equippedSword] then
+		return
+	end
+	
+	SwordServerService:M1(player, char)
 end
 
 function SwordServerService:Equip(player : Player, char : Model)
@@ -138,18 +170,27 @@ function SwordServerService:Equip(player : Player, char : Model)
 end
 
 function SwordServerService:Unequip(player : Player, char : Model)
-	if not player then return end
-	if not char then return end
+	if not player then
+		return
+	end
+	
+	if not char then
+		return
+	end
 
 	local data = DataManager:GetData(player)
-	if not data then return end
+	if not data then
+		return
+	end
 
 	local humanoid : Humanoid = char:FindFirstChild("Humanoid")
 
 	local weaponModel = char:FindFirstChild("Sword")
 	local equippedSword = DataManager:GetEquippedSword(player)
 	
-	if not SwordStats[equippedSword] or not weaponModel then return end
+	if not SwordStats[equippedSword] or not weaponModel then
+		return
+	end
 
 	local CurrentWeapon = weaponModel["Type"].Value
 	local DualWeapon = weaponModel["Dual"].Value
@@ -176,7 +217,7 @@ function SwordServerService:Unequip(player : Player, char : Model)
 
 			eWeld.Enabled = false 
 			ueWeld.Enabled = true 
-
+			
 			eWeld2.Enabled = false
 			ueWeld2.Enabled = true
 		else
@@ -201,7 +242,9 @@ function SwordServerService:M1(player : Player, char : Model)
 	print("M1")
 	
 	local data = DataManager:GetData(player)
-	if not data then return end
+	if not data then
+		return
+	end
 	
 	data:SetAttribute("Swinging", true)
 	
@@ -220,14 +263,16 @@ function SwordServerService:M1(player : Player, char : Model)
 		print("Enemy found")
 		local isBlocking = CombatUtil:IsBlocking(enemy)
 		local isBehind = CombatUtil:IsBehind(char, enemy)
-		if not isBlocking or isBehind then
-			if isBehind then
-				DataManager:SetBlocking(enemy, false)
-			end
-			enemy.Humanoid:TakeDamage(SwordStats[equippedSword].dmg)
-			if combo >= maxCombos then
-				VelocityModule:ApplyForce(enemy.HumanoidRootPart, 10, char.HumanoidRootPart.CFrame.LookVector)
-			end
+		if isBlocking then
+			return
+		end
+		
+		if isBehind then
+			DataManager:SetBlocking(enemy, false)
+		end
+		enemy.Humanoid:TakeDamage(SwordStats[equippedSword].dmg)
+		if combo >= maxCombos then
+			VelocityModule:ApplyForce(enemy.HumanoidRootPart, 10, char.HumanoidRootPart.CFrame.LookVector)
 		end
 	end
 	
